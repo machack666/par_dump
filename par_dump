@@ -33,6 +33,8 @@ debug("Got snapshot: $snapshot");
 my $num_chunks = calc_num_chunks();
 my $chunk_pages = calc_chunk_pages();
 
+die "No chunks for table! (Is table missing/empty?)\n" unless $num_chunks;
+
 # account for 0-based offset
 $num_chunks -= 1;
 
