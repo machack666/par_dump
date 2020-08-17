@@ -1,0 +1,15 @@
+#!/bin/bash
+
+table=$1
+snapshot=$2
+chunk_size=$3
+chunk=$4
+
+ctid1=$(( $chunk * $chunk_size ))
+ctid1=$(( ( $chunk + 1 ) * $chunk_size ))
+
+psql -1 \
+ -c "set transaction isolation level serializable" \
+ -c "set transaction snapshot '$snapshot'" \
+ -c "COPY (SELECT * FROM $table WHERE ctid >= '($ctid1,1)'::ctid AND ctid < '($ctid2,1)'::ctid) TO STDOUT" \
+ > $table.$chunk

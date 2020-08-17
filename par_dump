@@ -1,0 +1,60 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use DBI;
+use Getopt::Long;
+
+our $DEBUG = 1;
+
+my ($service, $table);
+my $jobs = 4;
+
+GetOptions(
+    'service=s', \$service,
+    't|table=s', \$table,
+    'j|jobs=i', \$jobs,
+) or die "Couldn't parse options\n";
+
+unless ($service && $table) {
+    die usage();
+}
+
+my $dbh = DBI->connect("dbi:Pg:") #service=$service")
+  or die "Couldn't connect to database!\n";
+
+$dbh->begin_work;
+
+my ($snapshot) = $dbh->selectrow_array('select pg_export_snapshot()');
+
+debug("Got snapshot: $snapshot");
+
+my $num_chunks = calc_num_chunks();
+my $chunk_pages = calc_chunk_pages();
+
+# account for 0-based offset
+$num_chunks -= 1;
+
+system("seq 0 $num_chunks | xargs -n1 -P$jobs ./dump_chunk $table $snapshot $chunk_pages");
+
+$dbh->commit;
+
+sub usage {
+    return "$0: --service <servicename> --table <tablename>\n";
+}
+
+sub debug {
+    warn @_ if $DEBUG;
+}
+
+sub calc_chunk_pages {
+    # return number of pages per GB chunk
+    my ($size) = $dbh->selectrow_array("SELECT 1024*1024*1024/current_setting('block_size')::int");
+    return $size;
+}
+
+sub calc_num_chunks {
+    my ($chunks) = $dbh->selectrow_array("SELECT ceil(pg_table_size(?)/(1024*1024*1024))", undef, $table);
+    return $chunks;
+}
