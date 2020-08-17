@@ -25,6 +25,7 @@ my $dbh = DBI->connect("dbi:Pg:") #service=$service")
   or die "Couldn't connect to database!\n";
 
 $dbh->begin_work;
+$dbh->do("set transaction isolation level serializable");
 
 my ($snapshot) = $dbh->selectrow_array('select pg_export_snapshot()');
 
