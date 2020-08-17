@@ -55,6 +55,6 @@ sub calc_chunk_pages {
 }
 
 sub calc_num_chunks {
-    my ($chunks) = $dbh->selectrow_array("SELECT ceil(pg_table_size(?)/(1024*1024*1024))", undef, $table);
+    my ($chunks) = $dbh->selectrow_array("SELECT ceil(pg_table_size(?)::float/(1024*1024*1024))", undef, $table);
     return $chunks;
 }
