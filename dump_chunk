@@ -5,11 +5,13 @@ snapshot=$2
 chunk_size=$3
 chunk=$4
 
-ctid1=$(( $chunk * $chunk_size ))
-ctid1=$(( ( $chunk + 1 ) * $chunk_size ))
+tid1=$(( $chunk * $chunk_size ))
+tid2=$(( ( $chunk + 1 ) * $chunk_size ))
 
 psql -1 \
- -c "set transaction isolation level serializable" \
- -c "set transaction snapshot '$snapshot'" \
- -c "COPY (SELECT * FROM $table WHERE ctid >= '($ctid1,1)'::ctid AND ctid < '($ctid2,1)'::ctid) TO STDOUT" \
- > $table.$chunk
+     -c "\o /dev/null" \
+     -c "set transaction isolation level serializable" \
+     -c "set transaction snapshot '$snapshot'" \
+     -c "\o $table.$chunk" \
+     -c "COPY (SELECT * FROM $table WHERE ctid >= '($tid1,1)'::tid AND ctid < '($tid2,1)'::tid) TO STDOUT" \
+
