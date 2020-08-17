@@ -1,0 +1,24 @@
+README
+======
+
+This project is a simple proof-of-concept to support dumping a single large postgresql table in
+parallel with multiple jobs.  It uses page ranges and xargs to demonstrate the feasibility of this
+working prior to actually trying to implement this functionality inside `pg_dump` itself.
+
+Requirements
+------------
+
+ - perl
+ - DBD::Pg
+ - pg_service.conf with all auth configured to allow selection via PGSERVICE environment
+
+Invocation
+----------
+
+./par_dump --service=service --table=table
+
+This will create the dump files <table>.0 thru <table>.X corresponding to the 1-GB segments making up the table.
+
+Note:
+
+This program is very stupid; take it for what it's worth.
